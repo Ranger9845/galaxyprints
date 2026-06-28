@@ -42,7 +42,10 @@ The customer account starts with a demo order and 250 points; the owner can sign
 | Variable        | Required | Default                              | Notes                                                                 |
 | ---------------- | -------- | -------------------------------------- | ---------------------------------------------------------------------- |
 | `AUTH_SECRET`    | Yes (prod) | `dev-only-insecure-secret-change-me`  | Used to sign session JWTs. **Must** be set to a real random secret before deploying — the fallback is insecure and only intended for local development. |
-| `DATABASE_PATH`  | No       | `<cwd>/data/app.db`                    | Path to the SQLite database file.                                     |
+| `DATABASE_PATH`  | No       | `<cwd>/data/app.db`                    | Path to the SQLite database file. Point this at a persistent disk mount in production (see below). |
+| `OWNER_EMAIL`    | No       | —                                       | Used by `npm run db:init-owner` to create the real owner account in production. |
+| `OWNER_PASSWORD` | No       | —                                       | Password for the account above. Use a strong, private password — never the demo password. |
+| `OWNER_NAME`     | No       | `Owner`                                 | Display name for the account above.                                    |
 
 ## Scripts
 
@@ -50,7 +53,17 @@ The customer account starts with a demo order and 250 points; the owner can sign
 - `npm run build` — production build
 - `npm run start` — run the production build
 - `npm run lint` — ESLint
-- `npm run db:seed` — (re)seed the SQLite database with demo accounts, products, and one demo order
+- `npm run db:seed` — (re)seed the SQLite database with demo accounts, products, and one demo order. **Local development only** — do not run this in production, since the demo credentials are public (printed above).
+- `npm run db:init-owner` — production-safe bootstrap: ensures the schema exists and creates a single owner account from `OWNER_EMAIL`/`OWNER_PASSWORD`/`OWNER_NAME`. Does not touch products, demo customers, or demo orders, and is safe to run on every boot (idempotent). If the owner env vars aren't set, it just ensures the schema exists and exits cleanly.
+
+## Deploying to production
+
+This app uses a local SQLite file (`node:sqlite`), so it needs a host that gives the running process a **writable, persistent filesystem** — not a stateless serverless platform like Vercel (whose functions run on a read-only filesystem). [Render](https://render.com) works well as a "Web Service" running a long-lived Node process.
+
+1. **Environment**: Node. **Build command**: `npm install && npm run build`. **Start command**: `npm run db:init-owner && npm run start`.
+2. **Persistent disk**: attach a disk (e.g. mount path `/data`, 1GB) so the database survives restarts/redeploys — without this, every redeploy wipes the database. This requires a paid instance tier; Render's free tier doesn't support disks.
+3. **Environment variables**: set `AUTH_SECRET` (random secret), `DATABASE_PATH` (e.g. `/data/app.db`, matching the disk mount path above), and `OWNER_EMAIL` / `OWNER_PASSWORD` (real, private credentials for the actual store owner — do not reuse the demo credentials from `npm run db:seed`).
+4. Redeploy. The catalog starts empty — add real products from `/owner` after signing in with the credentials from step 3.
 
 ## Project structure
 
