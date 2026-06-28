@@ -63,6 +63,7 @@ export interface OrderItem {
   quantity: number;
   color: string;
   material: string;
+  customRequestId: string | null;
 }
 
 export interface OrderStatusEvent {
@@ -106,6 +107,37 @@ export interface PointsTransaction {
   reason: string;
   orderId: string | null;
   createdAt: string;
+}
+
+export const CUSTOM_PRINT_STATUSES = ["SUBMITTED", "QUOTED", "ACCEPTED", "DECLINED", "CANCELLED"] as const;
+
+export type CustomPrintStatus = (typeof CUSTOM_PRINT_STATUSES)[number];
+
+export const CUSTOM_PRINT_STATUS_LABELS: Record<CustomPrintStatus, string> = {
+  SUBMITTED: "Awaiting Review",
+  QUOTED: "Quote Ready",
+  ACCEPTED: "Accepted — Order Placed",
+  DECLINED: "Quote Declined",
+  CANCELLED: "Cancelled",
+};
+
+export interface CustomPrintRequest {
+  id: string;
+  userId: string | null;
+  contactEmail: string;
+  fileName: string;
+  filePath: string;
+  fileSizeBytes: number;
+  notes: string;
+  material: string;
+  color: string;
+  quantity: number;
+  status: CustomPrintStatus;
+  quotePriceCents: number | null;
+  quoteNotes: string;
+  orderId: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SessionPayload {

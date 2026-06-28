@@ -17,6 +17,9 @@ export function Header({ user }: { user: User | null }) {
           <Link href="/shop" className="hover:text-violet-700">
             Shop
           </Link>
+          <Link href="/custom-print" className="hover:text-violet-700">
+            Custom Print
+          </Link>
           <Link href="/track" className="hover:text-violet-700">
             Track Order
           </Link>
@@ -55,6 +58,9 @@ export function Header({ user }: { user: User | null }) {
       <nav className="flex items-center gap-4 border-t border-slate-100 px-4 py-2 text-sm font-medium text-slate-600 md:hidden">
         <Link href="/shop" className="hover:text-violet-700">
           Shop
+        </Link>
+        <Link href="/custom-print" className="hover:text-violet-700">
+          Custom Print
         </Link>
         <Link href="/track" className="hover:text-violet-700">
           Track Order

@@ -1,3 +1,5 @@
+import type { DatabaseSync } from "node:sqlite";
+
 export const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
@@ -78,9 +80,39 @@ CREATE TABLE IF NOT EXISTS points_transactions (
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
+CREATE TABLE IF NOT EXISTS custom_print_requests (
+  id TEXT PRIMARY KEY,
+  user_id TEXT REFERENCES users(id),
+  contact_email TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  file_size_bytes INTEGER NOT NULL,
+  notes TEXT NOT NULL DEFAULT '',
+  material TEXT NOT NULL DEFAULT '',
+  color TEXT NOT NULL DEFAULT '',
+  quantity INTEGER NOT NULL DEFAULT 1,
+  status TEXT NOT NULL CHECK (status IN ('SUBMITTED','QUOTED','ACCEPTED','DECLINED','CANCELLED')) DEFAULT 'SUBMITTED',
+  quote_price_cents INTEGER,
+  quote_notes TEXT NOT NULL DEFAULT '',
+  order_id TEXT REFERENCES orders(id),
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_contact_email ON orders(contact_email);
 CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_order_status_events_order_id ON order_status_events(order_id);
 CREATE INDEX IF NOT EXISTS idx_points_transactions_user_id ON points_transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_custom_print_requests_user_id ON custom_print_requests(user_id);
+CREATE INDEX IF NOT EXISTS idx_custom_print_requests_contact_email ON custom_print_requests(contact_email);
+CREATE INDEX IF NOT EXISTS idx_custom_print_requests_status ON custom_print_requests(status);
 `;
+
+// order_items predates custom_print_requests, so the FK column is added via migration rather than the CREATE TABLE above.
+export function applySchemaMigrations(db: DatabaseSync): void {
+  const columns = db.prepare("PRAGMA table_info(order_items)").all() as { name: string }[];
+  if (!columns.some((c) => c.name === "custom_request_id")) {
+    db.exec("ALTER TABLE order_items ADD COLUMN custom_request_id TEXT REFERENCES custom_print_requests(id)");
+  }
+}

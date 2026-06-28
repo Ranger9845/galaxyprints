@@ -39,6 +39,7 @@ interface OrderItemRow {
   quantity: number;
   color: string;
   material: string;
+  custom_request_id: string | null;
 }
 
 interface OrderStatusEventRow {
@@ -87,6 +88,7 @@ function mapOrderItem(row: OrderItemRow): OrderItem {
     quantity: row.quantity,
     color: row.color,
     material: row.material,
+    customRequestId: row.custom_request_id,
   };
 }
 
@@ -156,12 +158,13 @@ export function listAllOrders(filterStatus?: OrderStatus): Order[] {
 }
 
 export interface CreateOrderItemInput {
-  productId: string;
+  productId: string | null;
   productName: string;
   unitPriceCents: number;
   quantity: number;
   color: string;
   material: string;
+  customRequestId?: string | null;
 }
 
 export interface CreateOrderInput {
@@ -216,8 +219,8 @@ export function createOrder(input: CreateOrderInput): Order {
 
     for (const item of input.items) {
       db.prepare(
-        `INSERT INTO order_items (id, order_id, product_id, product_name, unit_price_cents, quantity, color, material)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO order_items (id, order_id, product_id, product_name, unit_price_cents, quantity, color, material, custom_request_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).run(
         randomUUID(),
         id,
@@ -226,9 +229,10 @@ export function createOrder(input: CreateOrderInput): Order {
         item.unitPriceCents,
         item.quantity,
         item.color,
-        item.material
+        item.material,
+        item.customRequestId ?? null
       );
-      decrementStock(item.productId, item.quantity);
+      if (item.productId) decrementStock(item.productId, item.quantity);
     }
 
     db.prepare(

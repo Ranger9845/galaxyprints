@@ -14,6 +14,9 @@ export default async function AccountLayout({ children }: { children: ReactNode 
         <Link href="/account/orders" className="-mb-px border-b-2 border-transparent py-3 hover:border-violet-600 hover:text-violet-700">
           Orders
         </Link>
+        <Link href="/account/custom-prints" className="-mb-px border-b-2 border-transparent py-3 hover:border-violet-600 hover:text-violet-700">
+          Custom Prints
+        </Link>
         <Link href="/account/points" className="-mb-px border-b-2 border-transparent py-3 hover:border-violet-600 hover:text-violet-700">
           Points
         </Link>

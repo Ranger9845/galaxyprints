@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
-import { SCHEMA_SQL } from "./schema";
+import { SCHEMA_SQL, applySchemaMigrations } from "./schema";
 
 const DB_PATH = process.env.DATABASE_PATH || path.join(process.cwd(), "data", "app.db");
 
@@ -16,6 +16,7 @@ function createDb(): DatabaseSync {
   db.exec("PRAGMA busy_timeout = 5000");
   db.exec("PRAGMA foreign_keys = ON");
   db.exec(SCHEMA_SQL);
+  applySchemaMigrations(db);
   return db;
 }
 
