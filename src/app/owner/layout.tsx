@@ -20,6 +20,9 @@ export default async function OwnerLayout({ children }: { children: ReactNode })
         <Link href="/owner/orders" className="-mb-px border-b-2 border-transparent py-3 hover:border-violet-600 hover:text-violet-700">
           Orders
         </Link>
+        <Link href="/owner/custom-prints" className="-mb-px border-b-2 border-transparent py-3 hover:border-violet-600 hover:text-violet-700">
+          Custom Prints
+        </Link>
         <Link href="/owner/customers" className="-mb-px border-b-2 border-transparent py-3 hover:border-violet-600 hover:text-violet-700">
           Customers
         </Link>

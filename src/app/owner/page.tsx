@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { getOwnerStats, listAllOrders } from "@/lib/repo/orders";
+import { listAllCustomPrintRequests } from "@/lib/repo/customPrintRequests";
 import { formatCents } from "@/lib/money";
 import { ORDER_STATUS_LABELS } from "@/lib/types";
 
 export default async function OwnerOverviewPage() {
   const stats = getOwnerStats();
   const recentOrders = listAllOrders().slice(0, 5);
+  const pendingCustomPrints = listAllCustomPrintRequests("SUBMITTED").length;
 
   return (
     <div className="flex flex-col gap-8">
@@ -14,7 +16,7 @@ export default async function OwnerOverviewPage() {
         <p className="text-slate-600">A snapshot of your store&apos;s performance.</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
         <div className="card p-5">
           <p className="text-sm text-slate-500">Revenue</p>
           <p className="mt-1 text-2xl font-bold text-slate-900">{formatCents(stats.totalRevenueCents)}</p>
@@ -35,6 +37,10 @@ export default async function OwnerOverviewPage() {
           <p className="text-sm text-slate-500">Points Outstanding</p>
           <p className="mt-1 text-2xl font-bold text-amber-600">{stats.totalPointsOutstanding}</p>
         </div>
+        <Link href="/owner/custom-prints?status=SUBMITTED" className="card p-5 hover:shadow-md">
+          <p className="text-sm text-slate-500">Pending Quotes</p>
+          <p className="mt-1 text-2xl font-bold text-violet-700">{pendingCustomPrints}</p>
+        </Link>
       </div>
 
       <div>

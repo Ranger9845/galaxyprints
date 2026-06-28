@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import bcrypt from "bcryptjs";
-import { SCHEMA_SQL } from "../src/lib/db/schema.ts";
+import { SCHEMA_SQL, applySchemaMigrations } from "../src/lib/db/schema.ts";
 
 const DB_PATH = process.env.DATABASE_PATH || path.join(process.cwd(), "data", "app.db");
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
@@ -12,6 +12,7 @@ const db = new DatabaseSync(DB_PATH);
 db.exec("PRAGMA journal_mode = WAL");
 db.exec("PRAGMA foreign_keys = ON");
 db.exec(SCHEMA_SQL);
+applySchemaMigrations(db);
 
 function upsertUser({ name, email, password, role }) {
   const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
