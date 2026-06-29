@@ -169,7 +169,8 @@ export function CadEditor({ userEmail }: { userEmail: string }) {
           scale: r3(mesh.scale),
         }));
       });
-      scene.add(tc); tcRef.current = tc;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      scene.add(tc as any); tcRef.current = tc;
       const raycaster = new T.Raycaster();
       const ptr = new T.Vector2();
       let pdX = 0, pdY = 0;
