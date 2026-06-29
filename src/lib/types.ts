@@ -141,6 +141,18 @@ export interface CustomPrintRequest {
   updatedAt: string;
 }
 
+
+export interface PrintMethod {
+  id: string;
+  name: string;
+  description: string;
+  materialRate: number;
+  hourlyRate: number;
+  active: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
 export interface SessionPayload {
   sub: string;
   email: string;
