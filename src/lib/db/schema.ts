@@ -99,6 +99,26 @@ CREATE TABLE IF NOT EXISTS custom_print_requests (
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
+CREATE TABLE IF NOT EXISTS materials (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  price_multiplier REAL NOT NULL DEFAULT 1,
+  auto_quote_eligible INTEGER NOT NULL DEFAULT 1,
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+CREATE TABLE IF NOT EXISTS print_settings (
+  id TEXT PRIMARY KEY DEFAULT 'default',
+  max_length_mm REAL NOT NULL DEFAULT 220,
+  max_width_mm REAL NOT NULL DEFAULT 220,
+  max_height_mm REAL NOT NULL DEFAULT 250,
+  base_price_cents INTEGER NOT NULL DEFAULT 500,
+  price_per_cm3_cents INTEGER NOT NULL DEFAULT 25,
+  auto_quote_enabled INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_contact_email ON orders(contact_email);
 CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
@@ -111,8 +131,22 @@ CREATE INDEX IF NOT EXISTS idx_custom_print_requests_status ON custom_print_requ
 
 // order_items predates custom_print_requests, so the FK column is added via migration rather than the CREATE TABLE above.
 export function applySchemaMigrations(db: DatabaseSync): void {
-  const columns = db.prepare("PRAGMA table_info(order_items)").all() as { name: string }[];
-  if (!columns.some((c) => c.name === "custom_request_id")) {
+  const orderItemColumns = db.prepare("PRAGMA table_info(order_items)").all() as { name: string }[];
+  if (!orderItemColumns.some((c) => c.name === "custom_request_id")) {
     db.exec("ALTER TABLE order_items ADD COLUMN custom_request_id TEXT REFERENCES custom_print_requests(id)");
   }
+
+  // custom_print_requests predates measurement-based auto-pricing, so these columns are added via migration.
+  const customPrintColumns = db.prepare("PRAGMA table_info(custom_print_requests)").all() as { name: string }[];
+  const addCustomPrintColumn = (name: string, ddl: string) => {
+    if (!customPrintColumns.some((c) => c.name === name)) {
+      db.exec(`ALTER TABLE custom_print_requests ADD COLUMN ${ddl}`);
+    }
+  };
+  addCustomPrintColumn("material_id", "material_id TEXT REFERENCES materials(id)");
+  addCustomPrintColumn("bbox_length_mm", "bbox_length_mm REAL");
+  addCustomPrintColumn("bbox_width_mm", "bbox_width_mm REAL");
+  addCustomPrintColumn("bbox_height_mm", "bbox_height_mm REAL");
+  addCustomPrintColumn("volume_cm3", "volume_cm3 REAL");
+  addCustomPrintColumn("auto_quoted", "auto_quoted INTEGER NOT NULL DEFAULT 0");
 }

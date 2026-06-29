@@ -4,7 +4,7 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser, requireOwner } from "@/lib/auth/guards";
-import { isAllowedModelFile, MAX_UPLOAD_BYTES, saveUploadedModelFile } from "@/lib/uploads";
+import { deleteUploadedModelFile, isAllowedModelFile, MAX_UPLOAD_BYTES, saveUploadedModelFile } from "@/lib/uploads";
 import {
   createCustomPrintRequest,
   declineCustomPrintQuote,
@@ -12,10 +12,14 @@ import {
   markCustomPrintRequestOrdered,
   setCustomPrintQuote,
 } from "@/lib/repo/customPrintRequests";
+import { findMaterialById } from "@/lib/repo/materials";
+import { getPrintSettings } from "@/lib/repo/printSettings";
 import { createOrder } from "@/lib/repo/orders";
 import { dollarsToCents } from "@/lib/money";
 import { calcShippingCents } from "@/lib/shipping";
 import { calcPointsEarned } from "@/lib/points";
+import { fitsBuildVolume, measureModelFile } from "@/lib/modelGeometry";
+import { computeSuggestedPriceCents, isAutoQuoteEligible } from "@/lib/pricing";
 
 export interface CustomPrintFormState {
   error?: string;
@@ -25,7 +29,7 @@ export interface CustomPrintFormState {
 const submitSchema = z.object({
   contactEmail: z.string().trim().email(),
   notes: z.string().trim().max(2000).optional().default(""),
-  material: z.string().trim().max(100).optional().default(""),
+  materialId: z.string().trim().min(1, "Please choose a material"),
   color: z.string().trim().max(100).optional().default(""),
   quantity: z.coerce.number().int().min(1).max(100),
 });
@@ -39,7 +43,7 @@ export async function submitCustomPrintRequestAction(
   const parsed = submitSchema.safeParse({
     contactEmail: formData.get("contactEmail"),
     notes: formData.get("notes") || undefined,
-    material: formData.get("material") || undefined,
+    materialId: formData.get("materialId"),
     color: formData.get("color") || undefined,
     quantity: formData.get("quantity"),
   });
@@ -59,7 +63,25 @@ export async function submitCustomPrintRequestAction(
   }
 
   const data = parsed.data;
+  const material = findMaterialById(data.materialId);
+  if (!material || !material.active) {
+    return { error: "Please choose a valid material." };
+  }
+
+  const settings = getPrintSettings();
   const saved = await saveUploadedModelFile(file);
+  const measured = measureModelFile(saved.buffer, saved.fileName);
+
+  if (measured && !fitsBuildVolume(measured, settings)) {
+    deleteUploadedModelFile(saved.filePath);
+    return {
+      error:
+        `This model is too large to print — it needs to fit within ${settings.maxLengthMm} × ${settings.maxWidthMm} × ${settings.maxHeightMm} mm ` +
+        `(in some rotation), but it measures ${measured.lengthMm.toFixed(1)} × ${measured.widthMm.toFixed(1)} × ${measured.heightMm.toFixed(1)} mm.`,
+    };
+  }
+
+  const volumeCm3 = measured?.volumeCm3 ?? null;
 
   const request = createCustomPrintRequest({
     userId: user?.id ?? null,
@@ -68,10 +90,22 @@ export async function submitCustomPrintRequestAction(
     filePath: saved.filePath,
     fileSizeBytes: saved.sizeBytes,
     notes: data.notes ?? "",
-    material: data.material ?? "",
+    material: material.name,
+    materialId: material.id,
     color: data.color ?? "",
     quantity: data.quantity,
+    bboxLengthMm: measured?.lengthMm ?? null,
+    bboxWidthMm: measured?.widthMm ?? null,
+    bboxHeightMm: measured?.heightMm ?? null,
+    volumeCm3,
   });
+
+  if (isAutoQuoteEligible(settings, material, volumeCm3)) {
+    const priceCents = computeSuggestedPriceCents(volumeCm3, data.quantity, material, settings);
+    if (priceCents != null) {
+      setCustomPrintQuote(request.id, priceCents, "Auto-quoted based on the model's measured volume.", true);
+    }
+  }
 
   revalidatePath("/owner/custom-prints");
   if (user) {

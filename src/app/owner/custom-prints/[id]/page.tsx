@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { findCustomPrintRequestById } from "@/lib/repo/customPrintRequests";
+import { findMaterialById } from "@/lib/repo/materials";
+import { getPrintSettings } from "@/lib/repo/printSettings";
+import { computeSuggestedPriceCents } from "@/lib/pricing";
 import { ModelViewer } from "@/components/ModelViewer";
 import { formatCents } from "@/lib/money";
 import { CUSTOM_PRINT_STATUS_LABELS } from "@/lib/types";
@@ -11,6 +14,12 @@ export default async function OwnerCustomPrintDetailPage({ params }: { params: P
   const request = findCustomPrintRequestById(id);
   if (!request) notFound();
 
+  const material = request.materialId ? findMaterialById(request.materialId) : null;
+  const settings = getPrintSettings();
+  const suggestedPriceCents = material
+    ? computeSuggestedPriceCents(request.volumeCm3, request.quantity, material, settings)
+    : null;
+
   return (
     <div className="flex flex-col gap-8">
       <div>
@@ -19,9 +28,12 @@ export default async function OwnerCustomPrintDetailPage({ params }: { params: P
         </Link>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <h1 className="text-2xl font-bold text-slate-900">{request.fileName}</h1>
-          <span className="badge bg-violet-100 text-violet-800">
-            {CUSTOM_PRINT_STATUS_LABELS[request.status]}
-          </span>
+          <div className="flex items-center gap-2">
+            {request.autoQuoted && <span className="badge bg-emerald-100 text-emerald-800">Auto-Quoted</span>}
+            <span className="badge bg-violet-100 text-violet-800">
+              {CUSTOM_PRINT_STATUS_LABELS[request.status]}
+            </span>
+          </div>
         </div>
         <p className="text-sm text-slate-500">
           {request.contactEmail} · Submitted {new Date(request.createdAt).toLocaleString()}
@@ -36,7 +48,7 @@ export default async function OwnerCustomPrintDetailPage({ params }: { params: P
         <h2 className="font-semibold text-slate-900">Request Details</h2>
         <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-slate-500">Preferred Material</dt>
+            <dt className="text-slate-500">Material</dt>
             <dd className="text-slate-900">{request.material || "Not specified"}</dd>
           </div>
           <div>
@@ -51,12 +63,31 @@ export default async function OwnerCustomPrintDetailPage({ params }: { params: P
             <dt className="text-slate-500">File Size</dt>
             <dd className="text-slate-900">{(request.fileSizeBytes / 1024 / 1024).toFixed(2)} MB</dd>
           </div>
+          <div>
+            <dt className="text-slate-500">Measured Dimensions</dt>
+            <dd className="text-slate-900">
+              {request.bboxLengthMm != null && request.bboxWidthMm != null && request.bboxHeightMm != null
+                ? `${request.bboxLengthMm.toFixed(1)} × ${request.bboxWidthMm.toFixed(1)} × ${request.bboxHeightMm.toFixed(1)} mm`
+                : "Not measured (3MF)"}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-slate-500">Volume</dt>
+            <dd className="text-slate-900">
+              {request.volumeCm3 != null ? `${request.volumeCm3.toFixed(1)} cm³` : "Unknown"}
+            </dd>
+          </div>
         </dl>
         {request.notes && <p className="mt-4 text-sm text-slate-600">Notes: {request.notes}</p>}
       </div>
 
       {(request.status === "SUBMITTED" || request.status === "QUOTED") && (
-        <QuoteForm requestId={request.id} quotePriceCents={request.quotePriceCents} quoteNotes={request.quoteNotes} />
+        <QuoteForm
+          requestId={request.id}
+          quotePriceCents={request.quotePriceCents}
+          quoteNotes={request.quoteNotes}
+          suggestedPriceCents={suggestedPriceCents}
+        />
       )}
 
       {request.status === "QUOTED" && request.quotePriceCents != null && (
