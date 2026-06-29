@@ -5,87 +5,94 @@ import { ModelViewer } from "@/components/ModelViewer";
 import { formatCents } from "@/lib/money";
 import { CUSTOM_PRINT_STATUS_LABELS } from "@/lib/types";
 import { QuoteForm } from "./QuoteForm";
+import { listPrintMethods } from "@/lib/repo/printMethods";
 
-export default async function OwnerCustomPrintDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const request = findCustomPrintRequestById(id);
   if (!request) notFound();
 
+  const printMethods = listPrintMethods(true);
+
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <Link href="/owner/custom-prints" className="text-sm font-medium text-violet-700 hover:text-violet-800">
-          ← Back to Custom Print Requests
-        </Link>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-2xl font-bold text-slate-900">{request.fileName}</h1>
-          <span className="badge bg-violet-100 text-violet-800">
-            {CUSTOM_PRINT_STATUS_LABELS[request.status]}
-          </span>
-        </div>
-        <p className="text-sm text-slate-500">
-          {request.contactEmail} · Submitted {new Date(request.createdAt).toLocaleString()}
-        </p>
+    <div className="max-w-4xl mx-auto flex flex-col gap-6 py-8">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-slate-900">Print Request #{request.id.slice(0, 8)}</h1>
+        <Link href="/owner/custom-prints" className="text-sm text-violet-600 hover:underline">← All Requests</Link>
       </div>
 
-      <div className="card p-6">
-        <ModelViewer fileUrl={`/api/uploads/${request.id}`} fileName={request.fileName} />
-      </div>
-
-      <div className="card p-6">
+      {/* Request Details */}
+      <div className="card p-6 flex flex-col gap-4">
         <h2 className="font-semibold text-slate-900">Request Details</h2>
-        <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 text-sm">
           <div>
-            <dt className="text-slate-500">Preferred Material</dt>
-            <dd className="text-slate-900">{request.material || "Not specified"}</dd>
+            <p className="text-slate-500">Status</p>
+            <p className="font-medium">{CUSTOM_PRINT_STATUS_LABELS[request.status] ?? request.status}</p>
           </div>
           <div>
-            <dt className="text-slate-500">Preferred Color</dt>
-            <dd className="text-slate-900">{request.color || "Not specified"}</dd>
+            <p className="text-slate-500">Submitted</p>
+            <p className="font-medium">{new Date(request.createdAt).toLocaleDateString()}</p>
           </div>
           <div>
-            <dt className="text-slate-500">Quantity</dt>
-            <dd className="text-slate-900">{request.quantity}</dd>
+            <p className="text-slate-500">Customer</p>
+            <p className="font-medium">{request.name}</p>
           </div>
           <div>
-            <dt className="text-slate-500">File Size</dt>
-            <dd className="text-slate-900">{(request.fileSizeBytes / 1024 / 1024).toFixed(2)} MB</dd>
+            <p className="text-slate-500">Email</p>
+            <p className="font-medium">{request.email}</p>
           </div>
           <div>
-            <dt className="text-slate-500">Customer ZIP</dt>
-            <dd className="text-slate-900">{request.shippingZip || "Not provided"}</dd>
+            <p className="text-slate-500">Quantity</p>
+            <p className="font-medium">{request.quantity}</p>
           </div>
-        </dl>
-        {request.notes && <p className="mt-4 text-sm text-slate-600">Notes: {request.notes}</p>}
+          <div>
+            <p className="text-slate-500">Material</p>
+            <p className="font-medium">{request.material || "Not specified"}</p>
+          </div>
+          <div>
+            <p className="text-slate-500">Customer ZIP</p>
+            <p className="font-medium">{request.shippingZip || "Not provided"}</p>
+          </div>
+          {request.quotePriceCents != null && (
+            <div>
+              <p className="text-slate-500">Current Quote</p>
+              <p className="font-medium">{formatCents(request.quotePriceCents)}</p>
+            </div>
+          )}
+        </div>
+        {request.notes && (
+          <div>
+            <p className="text-slate-500 text-sm">Customer Notes</p>
+            <p className="text-sm mt-1 bg-slate-50 rounded p-3 border border-slate-200">{request.notes}</p>
+          </div>
+        )}
+        {request.quoteNotes && (
+          <div>
+            <p className="text-slate-500 text-sm">Your Quote Note</p>
+            <p className="text-sm mt-1 bg-slate-50 rounded p-3 border border-slate-200">{request.quoteNotes}</p>
+          </div>
+        )}
       </div>
 
-      {(request.status === "SUBMITTED" || request.status === "QUOTED") && (
-        <QuoteForm
-          requestId={request.id}
-          quotePriceCents={request.quotePriceCents}
-          quoteNotes={request.quoteNotes}
-          shippingZip={request.shippingZip}
-          fileSizeBytes={request.fileSizeBytes}
-          quantity={request.quantity}
-          material={request.material}
-        />
-      )}
-
-      {request.status === "QUOTED" && request.quotePriceCents != null && (
+      {/* Model Preview */}
+      {request.fileUrl && (
         <div className="card p-6">
-          <h2 className="font-semibold text-slate-900">Current Quote</h2>
-          <p className="mt-2 text-2xl font-bold text-slate-900">{formatCents(request.quotePriceCents)}</p>
-          {request.quoteNotes && <p className="mt-1 text-sm text-slate-600">{request.quoteNotes}</p>}
+          <h2 className="font-semibold text-slate-900 mb-4">Model File</h2>
+          <ModelViewer fileUrl={request.fileUrl} fileName={request.fileName} />
         </div>
       )}
 
-      {request.status === "ACCEPTED" && request.orderId && (
-        <p className="text-sm text-emerald-700">The customer accepted this quote and an order was created.</p>
-      )}
-
-      {request.status === "DECLINED" && (
-        <p className="text-sm text-slate-600">The customer declined this quote.</p>
-      )}
+      {/* Quote Form */}
+      <QuoteForm
+        requestId={request.id}
+        quotePriceCents={request.quotePriceCents ?? null}
+        quoteNotes={request.quoteNotes ?? ""}
+        shippingZip={request.shippingZip ?? ""}
+        fileSizeBytes={request.fileSizeBytes ?? 0}
+        quantity={request.quantity ?? 1}
+        material={request.material ?? ""}
+        printMethods={printMethods}
+      />
     </div>
   );
 }
