@@ -64,3 +64,9 @@ export async function deletePrintMethodAction(formData: FormData): Promise<void>
   deletePrintMethod(id);
   revalidatePath("/owner/print-methods");
 }
+
+
+// Void wrapper — use this as direct <form action> in server components
+export async function updatePrintMethodDirectAction(formData: FormData): Promise<void> {
+  await updatePrintMethodAction({} as PrintMethodFormState, formData);
+}
