@@ -28,6 +28,7 @@ const submitSchema = z.object({
   material: z.string().trim().max(100).optional().default(""),
   color: z.string().trim().max(100).optional().default(""),
   quantity: z.coerce.number().int().min(1).max(100),
+  shippingZip: z.string().trim().max(20).optional().default(""),
 });
 
 export async function submitCustomPrintRequestAction(
@@ -42,6 +43,7 @@ export async function submitCustomPrintRequestAction(
     material: formData.get("material") || undefined,
     color: formData.get("color") || undefined,
     quantity: formData.get("quantity"),
+    shippingZip: formData.get("shippingZip") || undefined,
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -71,6 +73,7 @@ export async function submitCustomPrintRequestAction(
     material: data.material ?? "",
     color: data.color ?? "",
     quantity: data.quantity,
+    shippingZip: data.shippingZip ?? "",
   });
 
   revalidatePath("/owner/custom-prints");
