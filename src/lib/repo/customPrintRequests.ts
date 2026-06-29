@@ -13,6 +13,7 @@ interface CustomPrintRequestRow {
   material: string;
   color: string;
   quantity: number;
+  shipping_zip: string;
   status: string;
   quote_price_cents: number | null;
   quote_notes: string;
@@ -33,6 +34,7 @@ function mapCustomPrintRequest(row: CustomPrintRequestRow): CustomPrintRequest {
     material: row.material,
     color: row.color,
     quantity: row.quantity,
+    shippingZip: row.shipping_zip ?? "",
     status: row.status as CustomPrintStatus,
     quotePriceCents: row.quote_price_cents,
     quoteNotes: row.quote_notes,
@@ -84,6 +86,7 @@ export interface CreateCustomPrintRequestInput {
   material: string;
   color: string;
   quantity: number;
+  shippingZip: string;
 }
 
 export function createCustomPrintRequest(input: CreateCustomPrintRequestInput): CustomPrintRequest {
@@ -91,8 +94,8 @@ export function createCustomPrintRequest(input: CreateCustomPrintRequestInput): 
   getDb()
     .prepare(
       `INSERT INTO custom_print_requests
-        (id, user_id, contact_email, file_name, file_path, file_size_bytes, notes, material, color, quantity)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        (id, user_id, contact_email, file_name, file_path, file_size_bytes, notes, material, color, quantity, shipping_zip)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       id,
@@ -104,7 +107,8 @@ export function createCustomPrintRequest(input: CreateCustomPrintRequestInput): 
       input.notes,
       input.material,
       input.color,
-      input.quantity
+      input.quantity,
+      input.shippingZip ?? ""
     );
   return findCustomPrintRequestById(id)!;
 }
@@ -113,7 +117,7 @@ export function setCustomPrintQuote(id: string, quotePriceCents: number, quoteNo
   getDb()
     .prepare(
       `UPDATE custom_print_requests SET status = 'QUOTED', quote_price_cents = ?, quote_notes = ?,
-       updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`
+        updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`
     )
     .run(quotePriceCents, quoteNotes, id);
   return findCustomPrintRequestById(id)!;
@@ -132,7 +136,7 @@ export function markCustomPrintRequestOrdered(id: string, orderId: string): Cust
   getDb()
     .prepare(
       `UPDATE custom_print_requests SET status = 'ACCEPTED', order_id = ?,
-       updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`
+        updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`
     )
     .run(orderId, id);
   return findCustomPrintRequestById(id)!;
