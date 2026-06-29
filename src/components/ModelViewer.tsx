@@ -2,9 +2,28 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export function ModelViewer({ fileUrl, fileName }: { fileUrl: string; fileName: string }) {
+export interface MeasuredDimensions {
+  lengthMm: number;
+  widthMm: number;
+  heightMm: number;
+}
+
+export function ModelViewer({
+  fileUrl,
+  fileName,
+  onMeasured,
+}: {
+  fileUrl: string;
+  fileName: string;
+  onMeasured?: (dims: MeasuredDimensions) => void;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const onMeasuredRef = useRef(onMeasured);
+
+  useEffect(() => {
+    onMeasuredRef.current = onMeasured;
+  }, [onMeasured]);
 
   useEffect(() => {
     let disposed = false;
@@ -75,6 +94,7 @@ export function ModelViewer({ fileUrl, fileName }: { fileUrl: string; fileName: 
       const size = box.getSize(new THREE.Vector3());
       const center = box.getCenter(new THREE.Vector3());
       object.position.sub(center);
+      onMeasuredRef.current?.({ lengthMm: size.x, widthMm: size.y, heightMm: size.z });
 
       const maxDim = Math.max(size.x, size.y, size.z, 0.001);
       const distance = maxDim * 2.2;

@@ -1,8 +1,12 @@
 import { getCurrentUser } from "@/lib/auth/guards";
+import { listMaterials } from "@/lib/repo/materials";
+import { getPrintSettings } from "@/lib/repo/printSettings";
 import { CustomPrintForm } from "./CustomPrintForm";
 
 export default async function CustomPrintPage() {
   const user = await getCurrentUser();
+  const materials = listMaterials({ activeOnly: true });
+  const settings = getPrintSettings();
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-16 sm:px-6">
@@ -12,7 +16,7 @@ export default async function CustomPrintPage() {
         before anything is charged.
       </p>
       <div className="mt-6">
-        <CustomPrintForm user={user} />
+        <CustomPrintForm user={user} materials={materials} settings={settings} />
       </div>
     </div>
   );

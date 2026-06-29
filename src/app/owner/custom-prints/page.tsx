@@ -53,6 +53,7 @@ export default async function OwnerCustomPrintsPage({
                 </p>
               </div>
               <div className="flex items-center gap-4">
+                {request.autoQuoted && <span className="badge bg-emerald-100 text-emerald-800">Auto</span>}
                 <span className="badge bg-violet-100 text-violet-800">
                   {CUSTOM_PRINT_STATUS_LABELS[request.status]}
                 </span>

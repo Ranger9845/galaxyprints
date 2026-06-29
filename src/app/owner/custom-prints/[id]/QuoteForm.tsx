@@ -3,17 +3,21 @@
 import { useActionState } from "react";
 import { SubmitButton } from "@/components/SubmitButton";
 import { setCustomPrintQuoteAction } from "@/lib/actions/customPrints";
+import { formatCents } from "@/lib/money";
 
 export function QuoteForm({
   requestId,
   quotePriceCents,
   quoteNotes,
+  suggestedPriceCents,
 }: {
   requestId: string;
   quotePriceCents: number | null;
   quoteNotes: string;
+  suggestedPriceCents?: number | null;
 }) {
   const [state, formAction] = useActionState(setCustomPrintQuoteAction, {});
+  const defaultPriceCents = quotePriceCents ?? suggestedPriceCents ?? null;
 
   return (
     <form action={formAction} className="card flex flex-col gap-3 p-6">
@@ -30,9 +34,14 @@ export function QuoteForm({
           min={0.01}
           step={0.01}
           required
-          defaultValue={quotePriceCents != null ? (quotePriceCents / 100).toFixed(2) : undefined}
+          defaultValue={defaultPriceCents != null ? (defaultPriceCents / 100).toFixed(2) : undefined}
           className="input"
         />
+        {suggestedPriceCents != null && quotePriceCents == null && (
+          <p className="mt-1 text-xs text-slate-500">
+            Suggested from the pricing formula: {formatCents(suggestedPriceCents)}
+          </p>
+        )}
       </div>
       <div>
         <label className="label" htmlFor="quoteNotes">

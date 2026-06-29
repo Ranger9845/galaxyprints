@@ -11,12 +11,18 @@ interface CustomPrintRequestRow {
   file_size_bytes: number;
   notes: string;
   material: string;
+  material_id: string | null;
   color: string;
   quantity: number;
   status: string;
   quote_price_cents: number | null;
   quote_notes: string;
   order_id: string | null;
+  bbox_length_mm: number | null;
+  bbox_width_mm: number | null;
+  bbox_height_mm: number | null;
+  volume_cm3: number | null;
+  auto_quoted: number;
   created_at: string;
   updated_at: string;
 }
@@ -31,12 +37,18 @@ function mapCustomPrintRequest(row: CustomPrintRequestRow): CustomPrintRequest {
     fileSizeBytes: row.file_size_bytes,
     notes: row.notes,
     material: row.material,
+    materialId: row.material_id,
     color: row.color,
     quantity: row.quantity,
     status: row.status as CustomPrintStatus,
     quotePriceCents: row.quote_price_cents,
     quoteNotes: row.quote_notes,
     orderId: row.order_id,
+    bboxLengthMm: row.bbox_length_mm,
+    bboxWidthMm: row.bbox_width_mm,
+    bboxHeightMm: row.bbox_height_mm,
+    volumeCm3: row.volume_cm3,
+    autoQuoted: !!row.auto_quoted,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -82,8 +94,13 @@ export interface CreateCustomPrintRequestInput {
   fileSizeBytes: number;
   notes: string;
   material: string;
+  materialId: string | null;
   color: string;
   quantity: number;
+  bboxLengthMm: number | null;
+  bboxWidthMm: number | null;
+  bboxHeightMm: number | null;
+  volumeCm3: number | null;
 }
 
 export function createCustomPrintRequest(input: CreateCustomPrintRequestInput): CustomPrintRequest {
@@ -91,8 +108,9 @@ export function createCustomPrintRequest(input: CreateCustomPrintRequestInput): 
   getDb()
     .prepare(
       `INSERT INTO custom_print_requests
-        (id, user_id, contact_email, file_name, file_path, file_size_bytes, notes, material, color, quantity)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        (id, user_id, contact_email, file_name, file_path, file_size_bytes, notes, material, material_id, color,
+         quantity, bbox_length_mm, bbox_width_mm, bbox_height_mm, volume_cm3)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       id,
@@ -103,19 +121,29 @@ export function createCustomPrintRequest(input: CreateCustomPrintRequestInput): 
       input.fileSizeBytes,
       input.notes,
       input.material,
+      input.materialId,
       input.color,
-      input.quantity
+      input.quantity,
+      input.bboxLengthMm,
+      input.bboxWidthMm,
+      input.bboxHeightMm,
+      input.volumeCm3
     );
   return findCustomPrintRequestById(id)!;
 }
 
-export function setCustomPrintQuote(id: string, quotePriceCents: number, quoteNotes: string): CustomPrintRequest {
+export function setCustomPrintQuote(
+  id: string,
+  quotePriceCents: number,
+  quoteNotes: string,
+  autoQuoted = false
+): CustomPrintRequest {
   getDb()
     .prepare(
-      `UPDATE custom_print_requests SET status = 'QUOTED', quote_price_cents = ?, quote_notes = ?,
+      `UPDATE custom_print_requests SET status = 'QUOTED', quote_price_cents = ?, quote_notes = ?, auto_quoted = ?,
        updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`
     )
-    .run(quotePriceCents, quoteNotes, id);
+    .run(quotePriceCents, quoteNotes, autoQuoted ? 1 : 0, id);
   return findCustomPrintRequestById(id)!;
 }
 

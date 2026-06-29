@@ -130,13 +130,39 @@ export interface CustomPrintRequest {
   fileSizeBytes: number;
   notes: string;
   material: string;
+  materialId: string | null;
   color: string;
   quantity: number;
   status: CustomPrintStatus;
   quotePriceCents: number | null;
   quoteNotes: string;
   orderId: string | null;
+  bboxLengthMm: number | null;
+  bboxWidthMm: number | null;
+  bboxHeightMm: number | null;
+  volumeCm3: number | null;
+  autoQuoted: boolean;
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface Material {
+  id: string;
+  name: string;
+  priceMultiplier: number;
+  autoQuoteEligible: boolean;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface PrintSettings {
+  id: string;
+  maxLengthMm: number;
+  maxWidthMm: number;
+  maxHeightMm: number;
+  basePriceCents: number;
+  pricePerCm3Cents: number;
+  autoQuoteEnabled: boolean;
   updatedAt: string;
 }
 
