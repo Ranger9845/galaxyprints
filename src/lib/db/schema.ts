@@ -151,4 +151,19 @@ export function applySchemaMigrations(db: DatabaseSync): void {
       "INSERT INTO print_methods (id, name, description, material_rate, hourly_rate, active, sort_order) VALUES (?,?,?,?,?,1,?)"
     ).run(id4, "FDM – ABS", "FDM with ABS — durable and impact-resistant.", 0.12, 14.0, 4);
   }
+  // Seed default owner account if none exists
+  const ownerCount = db.prepare("SELECT COUNT(*) as n FROM users WHERE role = 'OWNER'").get() as { n: number };
+  if (ownerCount.n === 0) {
+    db.prepare(
+      "INSERT INTO users (id, name, email, password_hash, role, points) VALUES (?, ?, ?, ?, ?, ?)"
+    ).run(
+      randomUUID(),
+      "Galaxy Prints Owner",
+      "owner@galaxyprints.test",
+      "$2a$10$q5k/SU27HCf9qSg7OdVcM.oukX9m/g7ziX/PUZuO2vCTqkgH8aHR2",
+      "OWNER",
+      0
+    );
+  }
+
 }
