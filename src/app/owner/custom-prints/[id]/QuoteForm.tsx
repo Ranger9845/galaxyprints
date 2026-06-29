@@ -38,6 +38,8 @@ interface Breakdown {
   total: number;
   distanceMiles?: number;
   zipNotFound?: boolean;
+  gramsUsed: number;
+  printHours: number;
 }
 
 export function QuoteForm({
@@ -107,7 +109,7 @@ export function QuoteForm({
     const printCost = parseFloat((printCostPerUnit * quantity).toFixed(2));
     const total = parseFloat((printCost + shippingCost).toFixed(2));
 
-    const result: Breakdown = { printCost, shippingCost, total, distanceMiles, zipNotFound };
+    const result: Breakdown = { printCost, shippingCost, total, distanceMiles, zipNotFound, gramsUsed: grams, printHours: hours };
     setBreakdown(result);
 
     if (priceRef.current) {
@@ -218,6 +220,11 @@ export function QuoteForm({
                 {quantity > 1 ? ` (${quantity}×)` : ""}
               </span>
               <span className="font-medium">${breakdown.printCost.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-xs text-slate-400">
+              <span>
+                {breakdown.gramsUsed}g filament · {breakdown.printHours}hr print time
+              </span>
             </div>
             <div className="flex justify-between">
               <span>
