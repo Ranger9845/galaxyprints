@@ -1,5 +1,5 @@
 import { listPrintMethods } from "@/lib/repo/printMethods";
-import { updatePrintMethodAction, deletePrintMethodAction } from "@/lib/actions/printMethods";
+import { updatePrintMethodAction, updatePrintMethodDirectAction, deletePrintMethodAction } from "@/lib/actions/printMethods";
 import { AddMethodForm } from "./AddMethodForm";
 
 export default async function PrintMethodsPage() {
@@ -45,7 +45,7 @@ export default async function PrintMethodsPage() {
             </summary>
 
             <div className="border-t border-slate-100 p-4">
-              <form action={updatePrintMethodAction} className="grid gap-3 sm:grid-cols-2">
+              <form action={updatePrintMethodDirectAction} className="grid gap-3 sm:grid-cols-2">
                 <input type="hidden" name="id" value={m.id} />
                 <div className="sm:col-span-2">
                   <label className="label text-xs">Name</label>
