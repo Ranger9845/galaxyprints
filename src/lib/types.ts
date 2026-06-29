@@ -132,6 +132,7 @@ export interface CustomPrintRequest {
   material: string;
   color: string;
   quantity: number;
+  shippingZip: string;
   status: CustomPrintStatus;
   quotePriceCents: number | null;
   quoteNotes: string;
