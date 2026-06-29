@@ -21,7 +21,6 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         <Link href="/owner/custom-prints" className="text-sm text-violet-600 hover:underline">← All Requests</Link>
       </div>
 
-      {/* Request Details */}
       <div className="card p-6 flex flex-col gap-4">
         <h2 className="font-semibold text-slate-900">Request Details</h2>
         <div className="grid gap-3 sm:grid-cols-2 text-sm">
@@ -34,12 +33,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <p className="font-medium">{new Date(request.createdAt).toLocaleDateString()}</p>
           </div>
           <div>
-            <p className="text-slate-500">Customer</p>
-            <p className="font-medium">{request.name}</p>
-          </div>
-          <div>
-            <p className="text-slate-500">Email</p>
-            <p className="font-medium">{request.email}</p>
+            <p className="text-slate-500">Contact Email</p>
+            <p className="font-medium">{request.contactEmail}</p>
           </div>
           <div>
             <p className="text-slate-500">Quantity</p>
@@ -48,6 +43,10 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           <div>
             <p className="text-slate-500">Material</p>
             <p className="font-medium">{request.material || "Not specified"}</p>
+          </div>
+          <div>
+            <p className="text-slate-500">Color</p>
+            <p className="font-medium">{request.color || "Not specified"}</p>
           </div>
           <div>
             <p className="text-slate-500">Customer ZIP</p>
@@ -74,15 +73,13 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         )}
       </div>
 
-      {/* Model Preview */}
-      {request.fileUrl && (
+      {request.filePath && (
         <div className="card p-6">
           <h2 className="font-semibold text-slate-900 mb-4">Model File</h2>
-          <ModelViewer fileUrl={request.fileUrl} fileName={request.fileName} />
+          <ModelViewer fileUrl={request.filePath} fileName={request.fileName} />
         </div>
       )}
 
-      {/* Quote Form */}
       <QuoteForm
         requestId={request.id}
         quotePriceCents={request.quotePriceCents ?? null}
