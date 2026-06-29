@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-/* ══════════════════════════════ TYPES ══════════════════════════════════════ */
+/* ââââââââââââââââââââââââââââââ TYPES ââââââââââââââââââââââââââââââââââââââ */
 type ShapeType = "box"|"sphere"|"cylinder"|"cone"|"torus"|"plane"|"ring"|"torusKnot"|"capsule";
 type TransformMode = "translate"|"rotate"|"scale";
 type ViewMode = "solid"|"wireframe"|"xray";
@@ -25,12 +25,12 @@ interface Shape {
   visible:boolean; locked:boolean;
 }
 
-/* ══════════════════════════ CONSTANTS ══════════════════════════════════════ */
+/* ââââââââââââââââââââââââââ CONSTANTS ââââââââââââââââââââââââââââââââââââââ */
 const COLORS=["#4472c4","#ed7d31","#a9d18e","#ff6b6b","#ffd93d","#6bcb77","#4d96ff","#c77dff","#f72585","#4cc9f0"];
 let _ctr=0;
 const uid=()=>`s${++_ctr}`;
 
-/* ════════════════════════════ GEOMETRY ════════════════════════════════════ */
+/* ââââââââââââââââââââââââââââ GEOMETRY ââââââââââââââââââââââââââââââââââââ */
 function makeGeo(T:any,p:ShapeParams):any {
   switch(p.type){
     case "box":       return new T.BoxGeometry(p.width,p.height,p.depth);
@@ -60,7 +60,7 @@ function defParams(t:ShapeType):ShapeParams {
 function defMat(i:number=0):Mat{return{color:COLORS[i%COLORS.length],roughness:0.5,metalness:0.0,opacity:1,wire:false};}
 function r3(v:{x:number;y:number;z:number}){return{x:+v.x.toFixed(3),y:+v.y.toFixed(3),z:+v.z.toFixed(3)};}
 
-/* ══════════════════════ BLENDER-STYLE UI COMPONENTS ═══════════════════════ */
+/* ââââââââââââââââââââââ BLENDER-STYLE UI COMPONENTS âââââââââââââââââââââââ */
 
 function BNum({label,value,onChange,step=0.1,min}:{label:string;value:number;onChange:(v:number)=>void;step?:number;min?:number}){
   return(
@@ -90,7 +90,7 @@ function BSection({label,children,open:initOpen=true}:{label:string;children:Rea
   return(
     <div className="bl-sec">
       <button className="bl-sec-hdr" onClick={()=>setOpen(v=>!v)}>
-        <span style={{marginRight:4,fontSize:8,transform:open?"rotate(90deg)":"rotate(0)",display:"inline-block",transition:"transform 0.15s"}}>▶</span>
+        <span style={{marginRight:4,fontSize:8,transform:open?"rotate(90deg)":"rotate(0)",display:"inline-block",transition:"transform 0.15s"}}>â¶</span>
         {label}
       </button>
       {open&&<div className="bl-sec-body">{children}</div>}
@@ -151,7 +151,7 @@ function ShapeParamsEditor({params,onChange}:{params:ShapeParams;onChange:(p:Sha
   );
 }
 
-/* ═══════════════════════════ MAIN COMPONENT ════════════════════════════════ */
+/* âââââââââââââââââââââââââââ MAIN COMPONENT ââââââââââââââââââââââââââââââââ */
 
 export function CadEditor({userEmail}:{userEmail:string}){
   const router=useRouter();
@@ -225,7 +225,7 @@ export function CadEditor({userEmail}:{userEmail:string}){
       sun.shadow.camera.left=-15; sun.shadow.camera.right=15;
       sun.shadow.camera.top=15; sun.shadow.camera.bottom=-15;
       scene.add(sun);
-      scene.add(Object.assign(new T.DirectionalLight(0xaabbff,0.2),{position:new T.Vector3(-6,4,-8)}));
+      (()=>{const _dl=new T.DirectionalLight(0xaabbff,0.2);_dl.position.set(-6,4,-8);scene.add(_dl);})();
       const grid=new T.GridHelper(40,40,0x555555,0x444444); scene.add(grid); gridRef.current=grid;
       const mkLine=(pts:number[][],col:number)=>{
         const geo=new T.BufferGeometry().setFromPoints(pts.map(p=>new T.Vector3(p[0],p[1],p[2])));
@@ -592,15 +592,15 @@ export function CadEditor({userEmail}:{userEmail:string}){
   const primary=shapes.find(s=>selectedIds.has(s.id))||null;
   const isEmpty=shapes.length===0;
   const SHAPES:[ShapeType,string,string][]=[
-    ["box","☐","Box"],["sphere","○","Sphere"],["cylinder","⌭","Cylinder"],
-    ["cone","△","Cone"],["torus","◎","Torus"],["plane","▭","Plane"],
-    ["ring","⊙","Ring"],["torusKnot","✦","Torus Knot"],["capsule","⊓","Capsule"],
+    ["box","â","Box"],["sphere","â","Sphere"],["cylinder","â­","Cylinder"],
+    ["cone","â³","Cone"],["torus","â","Torus"],["plane","â­","Plane"],
+    ["ring","â","Ring"],["torusKnot","â¦","Torus Knot"],["capsule","â","Capsule"],
   ];
 
   return(
     <div className="bl-root" onClick={()=>openMenu&&setOpenMenu(null)}>
 
-      {/* ═══ TOP MENU BAR ═══ */}
+      {/* âââ TOP MENU BAR âââ */}
       <div className="bl-menubar">
         <div className="bl-mode-pill">Object Mode</div>
         <div className="bl-menubar-divider"/>
@@ -611,12 +611,12 @@ export function CadEditor({userEmail}:{userEmail:string}){
           {openMenu==="file"&&(
             <div className="bl-dropdown">
               <label className="bl-dd-item cursor-pointer">
-                📂 Import STL…
+                ð Import STLâ¦
                 <input type="file" accept=".stl" className="hidden" onChange={e=>{const f=e.target.files?.[0];if(f)importSTL(f);e.target.value="";setOpenMenu(null);}}/>
               </label>
               <div className="bl-dd-sep"/>
-              <button className="bl-dd-item" onClick={()=>{exportSTL();setOpenMenu(null);}}>⬇ Export STL</button>
-              <button className="bl-dd-item" onClick={()=>{exportOBJ();setOpenMenu(null);}}>⬇ Export OBJ</button>
+              <button className="bl-dd-item" onClick={()=>{exportSTL();setOpenMenu(null);}}>â¬ Export STL</button>
+              <button className="bl-dd-item" onClick={()=>{exportOBJ();setOpenMenu(null);}}>â¬ Export OBJ</button>
             </div>
           )}
         </div>
@@ -626,10 +626,10 @@ export function CadEditor({userEmail}:{userEmail:string}){
           <button className="bl-menu-btn" onClick={()=>setOpenMenu(openMenu==="edit"?null:"edit")}>Edit</button>
           {openMenu==="edit"&&(
             <div className="bl-dropdown">
-              <button className="bl-dd-item" disabled={histIdx<=0} onClick={()=>{undo();setOpenMenu(null);}}>↩ Undo  <span className="bl-dd-key">⌘Z</span></button>
-              <button className="bl-dd-item" disabled={histIdx>=history.length-1} onClick={()=>{redo();setOpenMenu(null);}}>↪ Redo  <span className="bl-dd-key">⌘Y</span></button>
+              <button className="bl-dd-item" disabled={histIdx<=0} onClick={()=>{undo();setOpenMenu(null);}}>â© Undo  <span className="bl-dd-key">âZ</span></button>
+              <button className="bl-dd-item" disabled={histIdx>=history.length-1} onClick={()=>{redo();setOpenMenu(null);}}>âª Redo  <span className="bl-dd-key">âY</span></button>
               <div className="bl-dd-sep"/>
-              <button className="bl-dd-item" onClick={()=>{selectAll();setOpenMenu(null);}}>Select All  <span className="bl-dd-key">⌘A</span></button>
+              <button className="bl-dd-item" onClick={()=>{selectAll();setOpenMenu(null);}}>Select All  <span className="bl-dd-key">âA</span></button>
             </div>
           )}
         </div>
@@ -652,17 +652,17 @@ export function CadEditor({userEmail}:{userEmail:string}){
           <button className="bl-menu-btn" onClick={()=>setOpenMenu(openMenu==="object"?null:"object")}>Object</button>
           {openMenu==="object"&&(
             <div className="bl-dropdown">
-              <button className="bl-dd-item" disabled={!selectedIds.size} onClick={()=>{duplicateSelected();setOpenMenu(null);}}>⊕ Duplicate  <span className="bl-dd-key">⌘D</span></button>
-              <button className="bl-dd-item" disabled={!selectedIds.size} onClick={()=>{deleteSelected();setOpenMenu(null);}}>✕ Delete  <span className="bl-dd-key">Del</span></button>
+              <button className="bl-dd-item" disabled={!selectedIds.size} onClick={()=>{duplicateSelected();setOpenMenu(null);}}>â Duplicate  <span className="bl-dd-key">âD</span></button>
+              <button className="bl-dd-item" disabled={!selectedIds.size} onClick={()=>{deleteSelected();setOpenMenu(null);}}>â Delete  <span className="bl-dd-key">Del</span></button>
               <div className="bl-dd-sep"/>
               <div className="bl-dd-category">Mirror</div>
               <button className="bl-dd-item" disabled={!selectedIds.size} onClick={()=>{mirrorSelected("x");setOpenMenu(null);}}>Mirror X</button>
               <button className="bl-dd-item" disabled={!selectedIds.size} onClick={()=>{mirrorSelected("y");setOpenMenu(null);}}>Mirror Y</button>
               <button className="bl-dd-item" disabled={!selectedIds.size} onClick={()=>{mirrorSelected("z");setOpenMenu(null);}}>Mirror Z</button>
               <div className="bl-dd-sep"/>
-              <button className="bl-dd-item" disabled={!selectedIds.size} onClick={()=>{centerSelected();setOpenMenu(null);}}>⊙ Center</button>
-              <button className="bl-dd-item" disabled={!selectedIds.size} onClick={()=>{flattenToGround();setOpenMenu(null);}}>⬇ To Ground</button>
-              <button className="bl-dd-item" disabled={!selectedIds.size} onClick={()=>{setArrayModal(true);setOpenMenu(null);}}>⁝ Array…</button>
+              <button className="bl-dd-item" disabled={!selectedIds.size} onClick={()=>{centerSelected();setOpenMenu(null);}}>â Center</button>
+              <button className="bl-dd-item" disabled={!selectedIds.size} onClick={()=>{flattenToGround();setOpenMenu(null);}}>â¬ To Ground</button>
+              <button className="bl-dd-item" disabled={!selectedIds.size} onClick={()=>{setArrayModal(true);setOpenMenu(null);}}>â Arrayâ¦</button>
             </div>
           )}
         </div>
@@ -675,7 +675,7 @@ export function CadEditor({userEmail}:{userEmail:string}){
             <button key={vm} onClick={()=>setViewMode(vm)}
               className={`bl-shade-btn ${viewMode===vm?"bl-shade-active":""}`}
               title={vm}>
-              {vm==="solid"?"◼":vm==="wireframe"?"⊡":"◻"}
+              {vm==="solid"?"â¼":vm==="wireframe"?"â¡":"â»"}
             </button>
           ))}
         </div>
@@ -683,7 +683,7 @@ export function CadEditor({userEmail}:{userEmail:string}){
         {/* Snap */}
         <button onClick={()=>setSnapEnabled(v=>!v)}
           className={`bl-snap-btn ${snapEnabled?"bl-snap-on":""}`} title="Snap to grid (toggle)">
-          🧲
+          ð§²
         </button>
         {snapEnabled&&(
           <select value={snapSize} onChange={e=>setSnapSize(parseFloat(e.target.value))} className="bl-snap-sel">
@@ -695,14 +695,14 @@ export function CadEditor({userEmail}:{userEmail:string}){
 
         {/* Print button */}
         <button onClick={submitPrint} disabled={isEmpty||isExporting} className="bl-print-btn">
-          🖨 Request Print Quote
+          ð¨ Request Print Quote
         </button>
       </div>
 
-      {/* ═══ MAIN AREA ═══ */}
+      {/* âââ MAIN AREA âââ */}
       <div className="bl-main">
 
-        {/* ─── LEFT TOOLBAR (T-panel) ─── */}
+        {/* âââ LEFT TOOLBAR (T-panel) âââ */}
         <div className="bl-toolbar">
           <div className="bl-tool-group">
             <button onClick={()=>setMode("translate")} className={`bl-tool ${mode==="translate"?"bl-tool-on":""}`} title="Move (G)">
@@ -749,14 +749,14 @@ export function CadEditor({userEmail}:{userEmail:string}){
           </div>
           <div className="bl-tool-sep"/>
           <div className="bl-tool-group">
-            <button onClick={undo} disabled={histIdx<=0} className="bl-tool" title="Undo ⌘Z">
+            <button onClick={undo} disabled={histIdx<=0} className="bl-tool" title="Undo âZ">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M3 9a6 6 0 0 1 6-6h4" strokeLinecap="round"/>
                 <path d="M6 6L3 9l3 3" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <span>Undo</span>
             </button>
-            <button onClick={redo} disabled={histIdx>=history.length-1} className="bl-tool" title="Redo ⌘Y">
+            <button onClick={redo} disabled={histIdx>=history.length-1} className="bl-tool" title="Redo âY">
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M15 9a6 6 0 0 0-6-6H5" strokeLinecap="round"/>
                 <path d="M12 6l3 3-3 3" strokeLinecap="round" strokeLinejoin="round"/>
@@ -766,7 +766,7 @@ export function CadEditor({userEmail}:{userEmail:string}){
           </div>
         </div>
 
-        {/* ─── VIEWPORT ─── */}
+        {/* âââ VIEWPORT âââ */}
         <div className="bl-vp-wrap">
           <div ref={containerRef} className="bl-vp"/>
 
@@ -794,14 +794,14 @@ export function CadEditor({userEmail}:{userEmail:string}){
             {(["solid","wireframe","xray"] as const).map(vm=>(
               <button key={vm} onClick={()=>setViewMode(vm)}
                 className={`bl-vp-shade ${viewMode===vm?"bl-vp-shade-on":""}`} title={vm}>
-                {vm==="solid"?"◼":vm==="wireframe"?"⊡":"◻"}
+                {vm==="solid"?"â¼":vm==="wireframe"?"â¡":"â»"}
               </button>
             ))}
           </div>
 
           {isEmpty&&(
             <div className="bl-vp-empty">
-              <div style={{fontSize:48,marginBottom:12}}>🪐</div>
+              <div style={{fontSize:48,marginBottom:12}}>ðª</div>
               <div className="bl-vp-empty-title">No objects in scene</div>
               <div className="bl-vp-empty-sub">Use Add menu or press Shift+A</div>
               <div className="bl-vp-shortcuts">
@@ -810,9 +810,9 @@ export function CadEditor({userEmail}:{userEmail:string}){
                 <div className="bl-shortcut-row"><span>S</span><span>Scale</span></div>
                 <div className="bl-shortcut-row"><span>F</span><span>To Ground</span></div>
                 <div className="bl-shortcut-row"><span>Del</span><span>Delete</span></div>
-                <div className="bl-shortcut-row"><span>⌘D</span><span>Duplicate</span></div>
-                <div className="bl-shortcut-row"><span>⌘Z</span><span>Undo</span></div>
-                <div className="bl-shortcut-row"><span>⌘A</span><span>Select All</span></div>
+                <div className="bl-shortcut-row"><span>âD</span><span>Duplicate</span></div>
+                <div className="bl-shortcut-row"><span>âZ</span><span>Undo</span></div>
+                <div className="bl-shortcut-row"><span>âA</span><span>Select All</span></div>
               </div>
             </div>
           )}
@@ -828,7 +828,7 @@ export function CadEditor({userEmail}:{userEmail:string}){
           )}
         </div>
 
-        {/* ─── N-PANEL ─── */}
+        {/* âââ N-PANEL âââ */}
         <div className="bl-npanel">
           {/* Side tabs */}
           <div className="bl-nptabs">
@@ -950,7 +950,7 @@ export function CadEditor({userEmail}:{userEmail:string}){
                       <button onClick={()=>mirrorSelected("z")} className="bl-op-btn">Mirror Z</button>
                       <button onClick={centerSelected}  className="bl-op-btn">Center</button>
                       <button onClick={flattenToGround} className="bl-op-btn" style={{gridColumn:"1/-1"}}>Flatten to Ground</button>
-                      <button onClick={()=>setArrayModal(true)} className="bl-op-btn" style={{gridColumn:"1/-1"}}>Array Modifier…</button>
+                      <button onClick={()=>setArrayModal(true)} className="bl-op-btn" style={{gridColumn:"1/-1"}}>Array Modifierâ¦</button>
                     </div>
                   </BSection>
                 </>
@@ -982,11 +982,11 @@ export function CadEditor({userEmail}:{userEmail:string}){
                           <span style={{flex:1,fontSize:11,color:selectedIds.has(s.id)?"#fff":"#c8c8c8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</span>
                           <button onClick={e=>{e.stopPropagation();toggleVisible(s.id);}}
                             style={{fontSize:9,background:"none",border:"none",cursor:"pointer",color:"#6a6a6a",padding:0}}>
-                            {s.visible?"👁":"🚫"}
+                            {s.visible?"ð":"ð«"}
                           </button>
                           <button onClick={e=>{e.stopPropagation();toggleLock(s.id);}}
                             style={{fontSize:9,background:"none",border:"none",cursor:"pointer",color:"#6a6a6a",padding:0}}>
-                            {s.locked?"🔒":"🔓"}
+                            {s.locked?"ð":"ð"}
                           </button>
                         </li>
                       ))}
@@ -1024,7 +1024,7 @@ export function CadEditor({userEmail}:{userEmail:string}){
         </div>
       </div>
 
-      {/* ═══ STATUS BAR ═══ */}
+      {/* âââ STATUS BAR âââ */}
       <div className="bl-statusbar">
         <span>Verts: {shapes.length*100}</span>
         <span className="bl-sb-sep">|</span>
@@ -1037,7 +1037,7 @@ export function CadEditor({userEmail}:{userEmail:string}){
         <span>Hist: {histIdx}/{history.length-1}</span>
       </div>
 
-      {/* ═══ ARRAY MODAL ═══ */}
+      {/* âââ ARRAY MODAL âââ */}
       {arrayModal&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000}} onClick={()=>setArrayModal(false)}>
           <div style={{background:"#2b2b2b",border:"1px solid #444",borderRadius:6,padding:20,minWidth:280}} onClick={e=>e.stopPropagation()}>
