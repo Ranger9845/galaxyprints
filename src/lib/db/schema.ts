@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS custom_print_requests (
   material TEXT NOT NULL DEFAULT '',
   color TEXT NOT NULL DEFAULT '',
   quantity INTEGER NOT NULL DEFAULT 1,
+  shipping_zip TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL CHECK (status IN ('SUBMITTED','QUOTED','ACCEPTED','DECLINED','CANCELLED')) DEFAULT 'SUBMITTED',
   quote_price_cents INTEGER,
   quote_notes TEXT NOT NULL DEFAULT '',
@@ -109,10 +110,16 @@ CREATE INDEX IF NOT EXISTS idx_custom_print_requests_contact_email ON custom_pri
 CREATE INDEX IF NOT EXISTS idx_custom_print_requests_status ON custom_print_requests(status);
 `;
 
-// order_items predates custom_print_requests, so the FK column is added via migration rather than the CREATE TABLE above.
+// Migrations for columns added after initial schema
 export function applySchemaMigrations(db: DatabaseSync): void {
-  const columns = db.prepare("PRAGMA table_info(order_items)").all() as { name: string }[];
-  if (!columns.some((c) => c.name === "custom_request_id")) {
+  // order_items: add custom_request_id FK
+  const orderItemCols = db.prepare("PRAGMA table_info(order_items)").all() as { name: string }[];
+  if (!orderItemCols.some((c) => c.name === "custom_request_id")) {
     db.exec("ALTER TABLE order_items ADD COLUMN custom_request_id TEXT REFERENCES custom_print_requests(id)");
+  }
+  // custom_print_requests: add shipping_zip
+  const cprCols = db.prepare("PRAGMA table_info(custom_print_requests)").all() as { name: string }[];
+  if (!cprCols.some((c) => c.name === "shipping_zip")) {
+    db.exec("ALTER TABLE custom_print_requests ADD COLUMN shipping_zip TEXT NOT NULL DEFAULT ''");
   }
 }
