@@ -72,6 +72,20 @@ export function CustomPrintForm({ user }: { user: User | null }) {
         </div>
       </div>
       <div>
+        <label className="label" htmlFor="shippingZip">Your ZIP Code</label>
+        <input
+          id="shippingZip"
+          name="shippingZip"
+          type="text"
+          placeholder="e.g. 73107"
+          maxLength={10}
+          className="input"
+        />
+        <p className="mt-1 text-xs text-slate-500">
+          Helps us calculate accurate shipping costs in your quote.
+        </p>
+      </div>
+      <div>
         <label className="label" htmlFor="notes">Notes</label>
         <textarea id="notes" name="notes" rows={4} placeholder="Anything we should know? Sizing, finish, deadline..." className="input" />
       </div>
