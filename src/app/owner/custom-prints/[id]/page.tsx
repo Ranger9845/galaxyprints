@@ -51,12 +51,24 @@ export default async function OwnerCustomPrintDetailPage({ params }: { params: P
             <dt className="text-slate-500">File Size</dt>
             <dd className="text-slate-900">{(request.fileSizeBytes / 1024 / 1024).toFixed(2)} MB</dd>
           </div>
+          <div>
+            <dt className="text-slate-500">Customer ZIP</dt>
+            <dd className="text-slate-900">{request.shippingZip || "Not provided"}</dd>
+          </div>
         </dl>
         {request.notes && <p className="mt-4 text-sm text-slate-600">Notes: {request.notes}</p>}
       </div>
 
       {(request.status === "SUBMITTED" || request.status === "QUOTED") && (
-        <QuoteForm requestId={request.id} quotePriceCents={request.quotePriceCents} quoteNotes={request.quoteNotes} />
+        <QuoteForm
+          requestId={request.id}
+          quotePriceCents={request.quotePriceCents}
+          quoteNotes={request.quoteNotes}
+          shippingZip={request.shippingZip}
+          fileSizeBytes={request.fileSizeBytes}
+          quantity={request.quantity}
+          material={request.material}
+        />
       )}
 
       {request.status === "QUOTED" && request.quotePriceCents != null && (
