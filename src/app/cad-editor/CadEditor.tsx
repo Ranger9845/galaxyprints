@@ -181,7 +181,7 @@ export function CadEditor({ userEmail }: { userEmail: string }) {
         const rect = ren.domElement.getBoundingClientRect();
         ptr.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
         raycaster.setFromCamera(ptr, cam);
-        if (tc.object) { const gh = raycaster.intersectObject(tc, true); if (gh.length > 0) return; }
+        if (tc.object) { const gh = raycaster.intersectObject(tc as any, true); if (gh.length > 0) return; }
         const meshList = [...meshMapRef.current.values()];
         const hits = raycaster.intersectObjects(meshList, false);
         if (hits.length > 0) {
